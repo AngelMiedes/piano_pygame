@@ -170,20 +170,25 @@ def main():
                 sys.exit(0)
             # Evento pulsación del ratón    
             if eventos.type == pygame.MOUSEBUTTONDOWN:
-                # Hacemos sonar la tecla pulsada según la posición del ratón
-                teclado.play_tecla(pygame.mouse.get_pos())
-                # Creamos al imagen (con fondo transparente), a partir de la nota en el pentagrama que nos da la posición del ratón
-                imageNota = pygame.image.load(teclado.tecla_pulsada(pygame.mouse.get_pos()).get_image_nota()).convert_alpha()
-                # Escalamos la imangen de la nota en el pentagrama
-                #imageNotaScale = pygame.transform.scale(imageNota,(147,567))
-                # Creamos un rectangulo de iguales dimensiones que al imagen escadala
-                rect_filled = pygame.Surface(imageNota.get_size())
-                # Configuramos la visualización del rectangulo con el color del fondo
-                pygame.draw.rect(rect_filled, COLOR_FONDO, rect_filled.get_rect())
-                # pintamos el rectangulo (BORRAR DE LA PANTALLA LA IMAGEN ANTERIOR)
-                screen.blit(rect_filled, ((teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)) 
-                # Pintamos la imagen de la nueva nota
-                screen.blit(imageNota, ((teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x))
+                
+                try:
+                    # Hacemos sonar la tecla pulsada según la posición del ratón
+                    teclado.play_tecla(pygame.mouse.get_pos())
+                    # Creamos al imagen (con fondo transparente), a partir de la nota en el pentagrama que nos da la posición del ratón
+                    imageNota = pygame.image.load(teclado.tecla_pulsada(pygame.mouse.get_pos()).get_image_nota()).convert_alpha()
+                    # Escalamos la imangen de la nota en el pentagrama
+                    #imageNotaScale = pygame.transform.scale(imageNota,(147,567))
+                    # Creamos un rectangulo de iguales dimensiones que al imagen escadala
+                    rect_filled = pygame.Surface(imageNota.get_size())
+                    # Configuramos la visualización del rectangulo con el color del fondo
+                    pygame.draw.rect(rect_filled, COLOR_FONDO, rect_filled.get_rect())
+                    # pintamos el rectangulo (BORRAR DE LA PANTALLA LA IMAGEN ANTERIOR)
+                    screen.blit(rect_filled, ((teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)) 
+                    # Pintamos la imagen de la nueva nota
+                    screen.blit(imageNota, ((teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x))
+                except AttributeError:
+                    pass
+            
       
         pygame.display.flip()
     # finaliza Pygame
