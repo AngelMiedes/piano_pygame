@@ -13,11 +13,12 @@ WIDTH_IMAGE_NOTA = 32
 HEIGHT_IMAGE_NOTA = 200
 WIDTH_IMAGE_NOTAb = 22
 HEIGHT_IMAGE_NOTAb = 133
-WIDTH = 1500
+WIDTH = 1600 
 HEIGHT = 900
+TIEMPO_FALLO = 10000 # ms
 COLOR_FONDO = pygame.Color(200, 200, 200, 255)
 listNotas = ('C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B')
-listOctavas = ('1', '2', '3', '4', '5', '6', '7')
+listOctavas = (1, 2, 3, 4, 5, 6, 7)
  
 # Clases
 # ---------------------------------------------------------------------
@@ -63,7 +64,7 @@ class Tecla():
         
 class Teclado():
 
-    def __init__(self, octavas = 7, x = 0, y = 0):
+    def __init__(self, octavas, x = 0, y = 0):
         '''Crea un teclado con el número de octavas indicado, en la posición izquierda (x) y arriba (y)'''
         self.octavas = octavas
         self.x = x
@@ -80,10 +81,10 @@ class Teclado():
 
         pos_x = self.x
         # Creamos los rectangulos contenedores de las teclas y sus posiciones relativas
-        for oct in range(self.octavas):
+        for oct in listOctavas:
             for n in listNotas:
                 
-                tecla = Tecla(n,oct+1)
+                tecla = Tecla(n,oct)
                 if not tecla.is_bemol():
                     tecla.setRect(imageNotaScale.get_rect()) 
                     tecla.rect.topleft = (pos_x, self.y)
@@ -98,8 +99,9 @@ class Teclado():
                         tecla.rect.midtop = (pos_x + 5, self.y)
                     else:
                         tecla.rect.midtop = (pos_x, self.y)
-                    
-                self.teclas.append(tecla)
+
+                if oct in self.octavas:    
+                    self.teclas.append(tecla)
         #dibujamos primero las teclas blancas
         for t in self.teclas:
             if not t.is_bemol():
@@ -178,62 +180,148 @@ def load_image(filename, transparent=False):
         return image
 
 
-def texto(screen, texto, posx, posy, color=(255, 255, 255)):
-    fuente = pygame.font.Font('images/DroidSans.ttf', 25)
+def texto(screen, texto, posx, posy, color=(255, 255, 255), color_fondo=COLOR_FONDO):
+    
+    fuente = pygame.font.Font('images/DroidSans.ttf', 20)
     salida = pygame.font.Font.render(fuente, texto, 1, color)
     salida_rect = salida.get_rect()
     salida_rect.x = posx
     salida_rect.y = posy
+    rect_filled = pygame.Surface((salida_rect.w,salida_rect.h))
+    pygame.draw.rect(rect_filled, color_fondo, rect_filled.get_rect()) 
+    screen.blit(rect_filled, (posx, posy))
     screen.blit(salida, salida_rect)
-    #return salida, salida_rect
 
-def borrar_texto(screen, posx, posy, color=(255, 255, 255)):
-    rect_filled = pygame.Surface((500, 25))
+def borrar_barra_info(screen, posx, posy, width, height, color=COLOR_FONDO):
+    rect_filled = pygame.Surface((width, height))
     pygame.draw.rect(rect_filled, color, rect_filled.get_rect()) 
     screen.blit(rect_filled, (posx, posy))
+
+def actualiza_info(screen, mensaje, puntuacion, posx = 10, posy = HEIGHT - 40, width = WIDTH, height= 40, color_text=(0, 0, 0), color_ftext=COLOR_FONDO):
+    borrar_barra_info(screen, posx, posy, width, height, color=COLOR_FONDO)
+    texto(screen, mensaje, posx, posy, color_text, color_ftext)
+    texto(screen, f'Puntuación: {puntuacion}', posx + 1400, posy, color_text, COLOR_FONDO)
+
  
 # ---------------------------------------------------------------------
  
 def main():
     
     # Creamos teclado
-    teclado = Teclado(7,10,10)
+    octavas = [4]
+    teclado = Teclado(octavas,10,10)
     # Creamos la pantalla del programa cuyo tamaño depende del número de octavas del teclado
-    screen = pygame.display.set_mode((teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x * 2, HEIGHT))
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(COLOR_FONDO)
     pygame.display.set_caption("Pygame Piano")
     # Construimos y dibujamos el teclado en la pantalla
-    teclado.construir(screen)
-    tecla_random = Tecla(random.choice(listNotas), int(random.choice(listOctavas)))
-    teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
+    
     puntuacion = 0
+    construir0, construir1, construir2, construir3 = False, False, False, False
+    cont_time_fallo = 0
+    time_msg = 0
+    clock = pygame.time.Clock()
     
     
     while True:
-        # Espera eventos
+       
+        if puntuacion < 5 and not construir0:
+            del(teclado)
+            teclado = Teclado([4],10,10)
+            screen.fill(COLOR_FONDO)
+            teclado.construir(screen)
+            tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
+            teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
+            if construir1:
+                actualiza_info(screen,'Ohhhh, bajas de nivel!!!', puntuacion, color_ftext=(255, 0, 0)) 
+            construir0 = True
+            construir1 = False
+            construir2 = False
+            construir3 = False
+        if puntuacion >= 5 and puntuacion < 10 and  not construir1:
+            del(teclado)
+            teclado = Teclado([3,4,5],10,10)
+            screen.fill(COLOR_FONDO)
+            teclado.construir(screen)
+            tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
+            teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
+            if construir0:
+                actualiza_info(screen,'Bravo, subes de nivel!!!', puntuacion, color_ftext=(0, 255, 0)) 
+            else:
+                actualiza_info(screen,'Ohhhh, bajas de nivel!!!', puntuacion, color_ftext=(255, 0, 0))
+            construir1 = True
+            construir0 = False
+            construir2 = False
+            construir3 = False
+        if puntuacion >= 10 and puntuacion < 15 and  not construir2:
+            del(teclado)
+            teclado = Teclado([2,3,4,5,6],10,10)
+            screen.fill(COLOR_FONDO)
+            teclado.construir(screen)
+            tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
+            teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
+            if construir1:
+                actualiza_info(screen,'Bravo, subes de nivel!!!', puntuacion, color_ftext=(0, 255, 0)) 
+            else:
+                actualiza_info(screen,'Ohhhh, bajas de nivel!!!', puntuacion, color_ftext=(255, 0, 0))
+            construir2 = True
+            construir0 = False
+            construir1 = False
+            construir3 = False
+        if puntuacion >= 15 and  not construir3:
+            del(teclado)
+            teclado = Teclado([1,2,3,4,5,6,7],10,10)
+            screen.fill(COLOR_FONDO)
+            teclado.construir(screen)
+            tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
+            teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
+            if construir2:
+                actualiza_info(screen,'Bravo, subes de nivel!!!', puntuacion, color_ftext=(0, 255, 0)) 
+            else:
+                actualiza_info(screen,'Ohhhh, bajas de nivel!!!', puntuacion, color_ftext=(255, 0, 0))
+            construir3 = True
+            construir0 = False
+            construir1 = False
+            construir2 = False
+        
+        
+        dt = clock.tick_busy_loop(20)
+        cont_time_fallo += dt
+        time_msg += dt
+        
+        if cont_time_fallo >= TIEMPO_FALLO:
+            puntuacion -= 1
+            actualiza_info(screen,f' Han Pasado {TIEMPO_FALLO // 1000} seg. Un punto negativo!!!', puntuacion, color_ftext=(255, 0, 0)) 
+            cont_time_fallo = 0
+            time_msg = 0
+        if time_msg >= 3000:
+            time_msg = 0
+            actualiza_info(screen,'', puntuacion, color_ftext= COLOR_FONDO)
+
+         # Espera eventos
         for eventos in pygame.event.get():
             if eventos.type == QUIT:
                 sys.exit(0)
             # Evento pulsación del ratón    
             if eventos.type == pygame.MOUSEBUTTONDOWN:
-                
                 try:
                     # Hacemos sonar la tecla pulsada según la posición del ratón
                     teclado.play_tecla(pygame.mouse.get_pos())
                     # Mostramos la nota en el pentagrama asociada a la tecla pulsada
-                    #teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (teclado.octavas * WIDTH_IMAGE_NOTA * 7 + teclado.x) // 2,
-                    #                    HEIGHT_IMAGE_NOTA + teclado.x)
+                    teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (WIDTH + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)
                     if tecla_random == teclado.tecla_pulsada(pygame.mouse.get_pos()):
-                        puntuacion += abs(teclado.tecla_pulsada(pygame.mouse.get_pos()).octava - 4) + 1
-                        borrar_texto(screen, 10, HEIGHT - 40, color=(0, 255, 0))
-                        texto(screen, f'Acierto!!!!!     Puntuación: {puntuacion}', 10, HEIGHT - 40, color=(0, 0, 0))
-                        tecla_random = Tecla(random.choice(listNotas), int(random.choice(listOctavas)))
+                        incremento = abs(teclado.tecla_pulsada(pygame.mouse.get_pos()).octava - 4) + 1
+                        puntuacion += incremento
+                        actualiza_info(screen, f' Enhorabuena. {incremento} puntos!!!!!', puntuacion, color_ftext=(0, 255, 0)) 
+                        time_msg = 0
+                        cont_time_fallo = 0
+                        tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
                         teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
                         
                     else:
                         puntuacion -= 1
-                        borrar_texto(screen, 10, HEIGHT - 40, color=(255, 0, 0))
-                        texto(screen, f'Error!!!!!     Puntuación: {puntuacion}', 10, HEIGHT - 40, color=(0, 0, 0))
+                        actualiza_info(screen,' Error. Un punto negativo!!!!!', puntuacion, color_ftext=(255, 0, 0)) 
+                        time_msg = 0
                         
 
                 except AttributeError:
