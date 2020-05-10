@@ -59,7 +59,13 @@ class Tecla():
 
     def get_image_nota(self):
         ''' Devolvemos la ruta de la imagen en el pentagrama de la nota'''
-        return 'images' + os.sep + str(self.nota) + str(self.octava) + '.png'
+        if self.is_bemol():
+            ran = random.choice(['', 's'])
+            dir = 'images' + os.sep + str(self.nota) + str(self.octava) + ran + '.png'
+        else:
+            dir = 'images' + os.sep + str(self.nota) + str(self.octava) + '.png'
+
+        return dir
            
         
 class Teclado():
@@ -289,7 +295,7 @@ def main():
                     # Hacemos sonar la tecla pulsada según la posición del ratón
                     teclado.play_tecla(pygame.mouse.get_pos())
                     # Mostramos la nota en el pentagrama asociada a la tecla pulsada
-                    teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (WIDTH + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)
+                    #teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (WIDTH + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)
                     if tecla_random == teclado.tecla_pulsada(pygame.mouse.get_pos()):
                         puntuacion += abs(tecla_random.octava - 4) + 1
                         actualiza_info(screen, f' Enhorabuena. 1 punto más!!!!!', puntuacion, color_ftext=(0, 255, 0)) 
