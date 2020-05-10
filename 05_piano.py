@@ -297,8 +297,9 @@ def main():
                     # Mostramos la nota en el pentagrama asociada a la tecla pulsada
                     #teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (WIDTH + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)
                     if tecla_random == teclado.tecla_pulsada(pygame.mouse.get_pos()):
-                        puntuacion += abs(tecla_random.octava - 4) + 1
-                        actualiza_info(screen, f' Enhorabuena. 1 punto más!!!!!', puntuacion, color_ftext=(0, 255, 0)) 
+                        addPunt = abs(tecla_random.octava - 4) + 1
+                        puntuacion += addPunt
+                        actualiza_info(screen, f' Enhorabuena. {addPunt} puntos más!!!!!', puntuacion, color_ftext=(0, 255, 0)) 
                         time_msg = 0
                         cont_time_fallo = 0
                         tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
