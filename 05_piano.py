@@ -216,6 +216,29 @@ def main():
     # Creamos teclado
     octavas = [4]
     teclado = Teclado(octavas,10,10)
+    nivel0 = 10
+    nivel1 = 20
+    nivel2 = 50
+    try:
+        # Asignamos por consola la puntuacioón a partir de la cual aumentamos el número de octavas del piano.
+        nivel0 = int(input('Introducir la puntuación para pasar del primer nivel: '))
+        nivel1 = int(input('Introducir la puntuación para pasar del segundo nivel: '))
+        nivel2 = int(input('Introducir la puntuación para pasar del tercer nivel: '))
+        if nivel0 <= 0:
+            nivel0 = 1
+        if nivel1 <= nivel0:
+            nivel1 = nivel0 + 1
+        if nivel2 <= nivel1:
+            nivel2 = nivel1 + 1
+    except ValueError:
+        print('Valor introducido erroneo. Se asignan valores por defecto:')
+                 
+    finally:
+        print(f'''Cambio de niveles:
+                  Puntuación para pasar del primer nivel = {nivel0}
+                  Puntuación para pasar del segundo nivel = {nivel1}
+                  Puntuación para pasar del tercer nivel = {nivel2}''')
+    
     # Creamos la pantalla del programa cuyo tamaño depende del número de octavas del teclado
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     screen.fill(COLOR_FONDO)
@@ -238,7 +261,7 @@ def main():
     
     while True:
         # Construimos el teclado con 3 octavas
-        if puntuacion >= 10 and  not construir1:
+        if puntuacion >= nivel0 and  not construir1:
             del(teclado)
             teclado = Teclado([3,4,5],10,10)
             screen.fill(COLOR_FONDO)
@@ -249,7 +272,7 @@ def main():
                 actualiza_info(screen,'Bravo, subes de nivel!!!', puntuacion, color_ftext=(0, 255, 0)) 
             construir1 = True
         # Construimos el teclado con 5 octavas
-        if puntuacion >= 50  and  not construir2:
+        if puntuacion >= nivel1  and  not construir2:
             del(teclado)
             teclado = Teclado([2,3,4,5,6],10,10)
             screen.fill(COLOR_FONDO)
@@ -260,7 +283,7 @@ def main():
                 actualiza_info(screen,'Bravo, subes de nivel!!!', puntuacion, color_ftext=(0, 255, 0)) 
             construir2 = True
         # Construimos el teclado con 7 octavas
-        if puntuacion >= 100 and  not construir3:
+        if puntuacion >= nivel2 and  not construir3:
             del(teclado)
             teclado = Teclado([1,2,3,4,5,6,7],10,10)
             screen.fill(COLOR_FONDO)
