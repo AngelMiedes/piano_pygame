@@ -1,6 +1,8 @@
 import cx_Freeze
+
+# ejcutar python setup.py build
  
-executables = [cx_Freeze.Executable("05_piano.py")]
+executables = [cx_Freeze.Executable("06_piano.py")]
  
 build_exe_options = {"packages": ["pygame", "sys", "os", "random"],
                      "include_files":["images", "sounds"]}

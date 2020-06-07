@@ -210,6 +210,25 @@ def actualiza_info(screen, mensaje, t_juego, puntuacion, posx = 10, posy = HEIGH
     texto(screen, f'Tiempo: {t_juego}', (WIDTH // 2) - len(t_juego) // 2, posy, color_text, COLOR_FONDO)
     texto(screen, f'Puntuación: {puntuacion}', posx + 1400, posy, color_text, COLOR_FONDO)
 
+def guardarPuntuacion (fichero, puntuacion, fallos, aciertos, tiempo):
+    '''Guardamos la fecha, puntuación, fallos, aciertos y tiempo '''
+
+    # Abre archivo para escribir
+    archivo = open(fichero,'a')
+
+    seconds = t.time()
+    local_time = t.ctime(seconds)
+    archivo.write('Fecha: ' + local_time + '\n')
+    archivo.write('Puntuación: ' + str(puntuacion) + '\n') 
+    archivo.write('Fallos: ' + str(fallos) + '\n')   
+    archivo.write('Aciertos: ' + str(aciertos) + '\n')
+    archivo.write('Tiempo de juego: ' + str(tiempo) + '\n')
+    archivo.write('\n')
+    archivo.write('\n')
+
+    # cierra archivo
+    archivo.close()
+
  
 # ---------------------------------------------------------------------
  
@@ -226,6 +245,8 @@ def main():
     pygame.display.set_caption("Pygame Piano")
     # Construimos y dibujamos el teclado en la pantalla
     
+    aciertos = 0
+    fallos = 0
     puntuacion = 0
     cont_time_fallo = 0
     time_msg = 0
@@ -238,27 +259,30 @@ def main():
     tecla_random = Tecla(random.choice(listNotas), int(random.choice(teclado.octavas)))
     teclado.mostrar_nota(screen, tecla_random, 10, HEIGHT_IMAGE_NOTA + teclado.x)
     imprime = True
+    pausa = False
 
     while True:
        
         dt = clock.tick_busy_loop(20)
-        cont_time_fallo += dt
-        time_msg += dt
-        time_juego += dt
+        
+        if not pausa:
+            time_juego += dt
+            cont_time_fallo += dt
+            time_msg += dt  
         
         # tiempo de juego en segundos
         timer = t.localtime(time_juego/1000)
         # String que muestra el tiempo juego en HH:MM:SS
         str_time_juego = f'{timer.tm_hour - 1:0>2}:{timer.tm_min:0>2}:{timer.tm_sec:0>2}'
-        # Imprimimos puntuación cada minuto
-        if (time_juego // 1000) % 60 == 0:
+        # Guardamos datos en fichero al llegar a 500 y 1000 puntos
+        if (puntuacion >= 500 and puntuacion < 510) or (puntuacion >= 1000 and puntuacion < 1010):
             if imprime:
-                print(str_time_juego, '-->', puntuacion)
+                guardarPuntuacion ('Puntuacion.txt', puntuacion, fallos, aciertos, str_time_juego)
                 imprime = False
         else:
             imprime = True
         
-        if cont_time_fallo >= TIEMPO_FALLO:
+        if cont_time_fallo >= TIEMPO_FALLO and not pausa:
             puntuacion -= 1
             actualiza_info(screen,f' Han Pasado {TIEMPO_FALLO // 1000} seg. Un punto negativo!!!', str_time_juego, puntuacion, color_ftext=(255, 0, 0)) 
             cont_time_fallo = 0
@@ -273,8 +297,19 @@ def main():
         for eventos in pygame.event.get():
             if eventos.type == QUIT:
                 sys.exit(0)
+            #Cuando el evento es presionar una tecla...
+            if eventos.type == pygame.KEYDOWN:
+                #Obtenemos el mapping de teclas presionadas
+                keys = pygame.key.get_pressed()
+                if keys[K_p] and not pausa:
+                    pausa = True
+                    actualiza_info(screen,f' Juego Pausado!', str_time_juego, puntuacion, color_ftext=(255, 255, 0)) 
+                elif keys[K_p] and pausa:
+                    pausa = False
+                    actualiza_info(screen,f' Juego Reanudado!', str_time_juego, puntuacion, color_ftext=(0, 255, 0))
+
             # Evento pulsación del ratón    
-            if eventos.type == pygame.MOUSEBUTTONDOWN:
+            if eventos.type == pygame.MOUSEBUTTONDOWN and not pausa:
                 try:
                     # Hacemos sonar la tecla pulsada según la posición del ratón
                     teclado.play_tecla(pygame.mouse.get_pos())
@@ -282,6 +317,7 @@ def main():
                     #teclado.mostrar_nota(screen, teclado.tecla_pulsada(pygame.mouse.get_pos()), (WIDTH + teclado.x) // 2, HEIGHT_IMAGE_NOTA + teclado.x)
                     if tecla_random == teclado.tecla_pulsada(pygame.mouse.get_pos()):
                         addPunt = abs(tecla_random.octava - 4) + 1
+                        aciertos += 1
                         puntuacion += addPunt
                         actualiza_info(screen, f' Enhorabuena. {addPunt} puntos más!!!!!', str_time_juego, puntuacion, color_ftext=(0, 255, 0)) 
                         time_msg = 0
@@ -291,6 +327,7 @@ def main():
                         
                     else:
                         puntuacion -= 1
+                        fallos += 1
                         actualiza_info(screen,' Error. Un punto negativo!!!!!', str_time_juego, puntuacion, color_ftext=(255, 0, 0)) 
                         time_msg = 0
                         
